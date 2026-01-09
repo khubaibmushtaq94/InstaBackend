@@ -32,3 +32,27 @@ steps:
       set -e
       TAG="$(Build.SourceVersion)"
       IMAGE="$(ACR_LOGIN_SERVER)/$(IMAGE_REPO):$TAG"
+      echo "Building: $IMAGE"
+      docker build -t "$IMAGE" .
+
+      echo "Pushing: $IMAGE"
+      docker push "$IMAGE"
+    displayName: "Docker build & push to ACR"
+
+  # 3) Deploy to Web App (update image)
+  - task: AzureCLI@2
+    displayName: "Deploy Backend to Azure Web App"
+    inputs:
+      azureSubscription: "sc-azure"
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        set -e
+        TAG="$(Build.SourceVersion)"
+        IMAGE="$(ACR_LOGIN_SERVER)/$(IMAGE_REPO):$TAG"
+
+        echo "Updating web app $(WEBAPP_NAME) -> $IMAGE"
+        az webapp config container set \
+          --name $(WEBAPP_NAME) \
+          --resource-group $(RESOURCE_GROUP) \
+          --docker-image "$IMAGE"
