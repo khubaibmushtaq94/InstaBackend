@@ -1,0 +1,684 @@
+{
+	"info": {
+		"_postman_id": "social-media-api-v2",
+		"name": "Social Media API - Complete Collection",
+		"description": "Complete API collection for Social Media Application with Azure Storage integration",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "social-media-api"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Server Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/health",
+							"host": ["{{base_url}}"],
+							"path": ["api", "health"]
+						},
+						"description": "Check if the server is running"
+					},
+					"response": []
+				},
+				{
+					"name": "Root Endpoint",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": ["{{base_url}}"],
+							"path": [""]
+						},
+						"description": "Root endpoint"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Signup - Consumer (JSON)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Consumer\",\n  \"email\": \"consumer@example.com\",\n  \"password\": \"password123\",\n  \"userType\": \"consumer\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/signup",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "signup"]
+						},
+						"description": "Sign up as a consumer (no profile image required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Signup - Creator (FormData)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Jane Creator",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "creator@example.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "password123",
+									"type": "text"
+								},
+								{
+									"key": "userType",
+									"value": "creator",
+									"type": "text"
+								},
+								{
+									"key": "profileImage",
+									"type": "file",
+									"src": [],
+									"description": "Profile image file (required for creators, max 5MB)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/signup",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "signup"]
+						},
+						"description": "Sign up as a creator (profile image required, uploads to Azure Storage)"
+					},
+					"response": []
+				},
+				{
+					"name": "Login - Consumer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set(\"auth_token\", jsonData.token);",
+									"    pm.environment.set(\"user_id\", jsonData.user.id);",
+									"    pm.environment.set(\"user_type\", jsonData.user.userType);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"consumer@example.com\",\n  \"password\": \"password123\",\n  \"userType\": \"consumer\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						},
+						"description": "Login as consumer"
+					},
+					"response": []
+				},
+				{
+					"name": "Login - Creator",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set(\"auth_token\", jsonData.token);",
+									"    pm.environment.set(\"user_id\", jsonData.user.id);",
+									"    pm.environment.set(\"user_type\", jsonData.user.userType);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"creator@example.com\",\n  \"password\": \"password123\",\n  \"userType\": \"creator\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						},
+						"description": "Login as creator"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/logout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "logout"]
+						},
+						"description": "Logout from current device"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout All Devices",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/logout-all",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "logout-all"]
+						},
+						"description": "Logout from all devices"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Active Tokens",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/tokens",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "tokens"]
+						},
+						"description": "Get all active tokens for the current user"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Posts",
+			"item": [
+				{
+					"name": "Get All Posts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/posts",
+							"host": ["{{base_url}}"],
+							"path": ["api", "posts"]
+						},
+						"description": "Get all posts. Creators see their own posts, consumers see others' posts."
+					},
+					"response": []
+				},
+				{
+					"name": "Search Posts (Consumer Only)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/posts?search=keyword",
+							"host": ["{{base_url}}"],
+							"path": ["api", "posts"],
+							"query": [
+								{
+									"key": "search",
+									"value": "keyword",
+									"description": "Search term to filter posts by caption or username"
+								}
+							]
+						},
+						"description": "Search posts by caption or username (consumers only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Post - Text",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"text\",\n  \"caption\": \"This is a text-only post!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/posts",
+							"host": ["{{base_url}}"],
+							"path": ["api", "posts"]
+						},
+						"description": "Create a text post (creators only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Post - Image (FormData)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "type",
+									"value": "image",
+									"type": "text"
+								},
+								{
+									"key": "caption",
+									"value": "Check out this amazing image!",
+									"type": "text"
+								},
+								{
+									"key": "media",
+									"type": "file",
+									"src": [],
+									"description": "Image file (uploads to Azure Storage images container)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/posts",
+							"host": ["{{base_url}}"],
+							"path": ["api", "posts"]
+						},
+						"description": "Create an image post with file upload (uploads to Azure Storage)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Post - Image (URL)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"image\",\n  \"mediaUrl\": \"https://example.com/image.jpg\",\n  \"caption\": \"Image from URL\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/posts",
+							"host": ["{{base_url}}"],
+							"path": ["api", "posts"]
+						},
+						"description": "Create an image post with external URL"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Post - Video (FormData)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "type",
+									"value": "video",
+									"type": "text"
+								},
+								{
+									"key": "caption",
+									"value": "Amazing video content!",
+									"type": "text"
+								},
+								{
+									"key": "media",
+									"type": "file",
+									"src": [],
+									"description": "Video file (uploads to Azure Storage videos container, max 50MB)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/posts",
+							"host": ["{{base_url}}"],
+							"path": ["api", "posts"]
+						},
+						"description": "Create a video post (uploads to Azure Storage videos container)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Post - GIF (FormData)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "type",
+									"value": "gif",
+									"type": "text"
+								},
+								{
+									"key": "caption",
+									"value": "Funny GIF!",
+									"type": "text"
+								},
+								{
+									"key": "media",
+									"type": "file",
+									"src": [],
+									"description": "GIF file (uploads to Azure Storage gifs container)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/posts",
+							"host": ["{{base_url}}"],
+							"path": ["api", "posts"]
+						},
+						"description": "Create a GIF post (uploads to Azure Storage gifs container)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Post Caption",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"caption\": \"Updated caption text\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/posts/:postId",
+							"host": ["{{base_url}}"],
+							"path": ["api", "posts", ":postId"],
+							"variable": [
+								{
+									"key": "postId",
+									"value": "POST_ID_HERE",
+									"description": "Post ID to update"
+								}
+							]
+						},
+						"description": "Update post caption (post owner only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Post",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/posts/:postId",
+							"host": ["{{base_url}}"],
+							"path": ["api", "posts", ":postId"],
+							"variable": [
+								{
+									"key": "postId",
+									"value": "POST_ID_HERE",
+									"description": "Post ID to delete"
+								}
+							]
+						},
+						"description": "Delete a post (also deletes media from Azure Storage if applicable)"
+					},
+					"response": []
+				},
+				{
+					"name": "Like/Unlike Post",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/posts/:postId/like",
+							"host": ["{{base_url}}"],
+							"path": ["api", "posts", ":postId", "like"],
+							"variable": [
+								{
+									"key": "postId",
+									"value": "POST_ID_HERE",
+									"description": "Post ID to like/unlike"
+								}
+							]
+						},
+						"description": "Toggle like on a post"
+					},
+					"response": []
+				},
+				{
+					"name": "Add Comment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"text\": \"Great post!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/posts/:postId/comment",
+							"host": ["{{base_url}}"],
+							"path": ["api", "posts", ":postId", "comment"],
+							"variable": [
+								{
+									"key": "postId",
+									"value": "POST_ID_HERE",
+									"description": "Post ID to comment on"
+								}
+							]
+						},
+						"description": "Add a comment to a post"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Comment",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/posts/:postId/comment/:commentId",
+							"host": ["{{base_url}}"],
+							"path": ["api", "posts", ":postId", "comment", ":commentId"],
+							"variable": [
+								{
+									"key": "postId",
+									"value": "POST_ID_HERE",
+									"description": "Post ID"
+								},
+								{
+									"key": "commentId",
+									"value": "COMMENT_ID_HERE",
+									"description": "Comment ID to delete"
+								}
+							]
+						},
+						"description": "Delete a comment (comment owner or post owner only)"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://myinstappbackendweb.azurewebsites.net",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_type",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
