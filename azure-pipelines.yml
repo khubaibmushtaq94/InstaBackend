@@ -12,34 +12,35 @@ variables:
   IMAGE_REPO: myinstappbackend3
   RESOURCE_GROUP: instaapp
   WEBAPP_NAME: myinstappbackendweb
+  IMAGE_TAG: $(Build.SourceVersion)
 
 steps:
   - checkout: self
 
-  # 1) Login to ACR (NO ACR Tasks, just Docker push)
+  # 1) Login to Azure Container Registry
   - task: AzureCLI@2
     displayName: "Login to ACR"
     inputs:
-      azureSubscription: "sc-azure"
+      azureSubscription: "sc-azure" # <-- your Azure DevOps service connection
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
         set -e
+        echo "Logging into ACR: $(ACR_NAME)"
         az acr login --name $(ACR_NAME)
 
-  # 2) Build & Push with Docker
+  # 2) Build and Push Docker Image
   - script: |
       set -e
-      TAG="$(Build.SourceVersion)"
-      IMAGE="$(ACR_LOGIN_SERVER)/$(IMAGE_REPO):$TAG"
-      echo "Building: $IMAGE"
+      IMAGE="$(ACR_LOGIN_SERVER)/$(IMAGE_REPO):$(IMAGE_TAG)"
+      echo "Building Docker image: $IMAGE"
       docker build -t "$IMAGE" .
 
-      echo "Pushing: $IMAGE"
+      echo "Pushing Docker image: $IMAGE"
       docker push "$IMAGE"
-    displayName: "Docker build & push to ACR"
+    displayName: "Docker Build & Push to ACR"
 
-  # 3) Deploy to Web App (update image)
+  # 3) Deploy to Azure Web App
   - task: AzureCLI@2
     displayName: "Deploy Backend to Azure Web App"
     inputs:
@@ -48,11 +49,22 @@ steps:
       scriptLocation: inlineScript
       inlineScript: |
         set -e
-        TAG="$(Build.SourceVersion)"
-        IMAGE="$(ACR_LOGIN_SERVER)/$(IMAGE_REPO):$TAG"
+        IMAGE="$(ACR_LOGIN_SERVER)/$(IMAGE_REPO):$(IMAGE_TAG)"
 
-        echo "Updating web app $(WEBAPP_NAME) -> $IMAGE"
+        echo "Updating Web App $(WEBAPP_NAME) with image $IMAGE"
+
+        # Set Web App container image
         az webapp config container set \
           --name $(WEBAPP_NAME) \
           --resource-group $(RESOURCE_GROUP) \
-          --docker-image "$IMAGE"
+          --docker-custom-image-name "$IMAGE" \
+          --docker-registry-server-url "https://$(ACR_LOGIN_SERVER)"
+
+        # Ensure PORT environment variable is set for the container
+        az webapp config appsettings set \
+          --name $(WEBAPP_NAME) \
+          --resource-group $(RESOURCE_GROUP) \
+          --settings PORT=5001
+
+        # Restart the web app to apply changes
+        az webapp restart --name $(WEBAPP_NAME) --resource-group $(RESOURCE_GROUP)
